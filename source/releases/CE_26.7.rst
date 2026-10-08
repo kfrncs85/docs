@@ -31,6 +31,163 @@ can be found below as well.
 
 
 --------------------------------------------------------------------------
+26.7.6 (October 08, 2026)
+--------------------------------------------------------------------------
+
+
+This update finally brings interface settings to MVC/API!  It also brings
+a number of fixes and improvements from FreeBSD stable/15 including a fix
+for previous Hyper-V boot issues and hopefully also fixes ice driver DDP
+issues with newer firmware versions.
+
+For the interface settings MVC/API there a few things to keep in mind:
+
+* You can find them on the assignments page integrated into the existing grid.
+* Commonly required DHCP advanced options not in basic mode have been made available.
+* Advanced/file based modes for DHCP are gone and will reset on save.
+* Saving settings queues them for reconfiguration and storage.
+* A reboot without apply will discard the previously saved changes.
+* Apply works similar to the old interfaces.php page but uses a rewritten backend sequence.
+* The old interfaces.php page is still available retaining the old style settings.
+* The old interfaces.php page will likely move to a plugin for 27.1.
+
+We are looking for your feedback on this historic milestone!
+
+Here are the full patch notes:
+
+* system: use correct type for IP when killing active states in "lockout_handler" (reported by Omar Habra of Apex Security Research)
+* system: reject a null gateway in getGatewayAction()
+* system: add "latency_avg" as sanity check for running dpinger
+* system: missing chown in backup call for proper non-root web GUI access
+* system: do not allow system scope users to be renamed
+* reporting: unbound: add DNSSEC status column in details grid
+* interfaces: add interface configuration settings in new assignments page
+* interfaces: prevent interface_configure() from reloading non-interface hooks when in batch mode
+* interfaces: improve queue build sequence in interfaces_dependencies()
+* interfaces: remove stale VIP address after update (contributed by ExpRam)
+* interfaces: be more conservative with -no_dad
+* interfaces: add a new 'updateip' hook
+* firewall: aliases: reject reversed port ranges
+* firewall: destination NAT: fix destination for no-rdr rules (reported by fa1k3)
+* firewall: destination NAT: add safety guards for calculated port ranges
+* ipsec: add "replay_window" option to children
+* monit: log from the first line and reconfigure through the base class (contributed by IvanTheGeek)
+* openvpn: default keepalive to "10 60" in server mode and improve validation
+* bootgrid: upgrade Tabulator to version 6.5.3
+* mvc: disable Nginx reverse proxy buffering on configd streams
+* mvc: dispatch failed message during reconfiguredAction()
+* mvc: PortField: keep the first well-known service in the option list (contributed by fa1k3)
+* mvc: PortField: always return a string for normalizedPort()
+* mvc: UidField: allow an arbitrarily specified UID for system scope users upon creation
+* ui: do not add the spinner again when it fails
+* plugins: add error returns to plugins_configure()
+* plugins: os-ndp-proxy-go 1.5 `[1] <https://github.com/opnsense/plugins/blob/stable/26.7/net/ndp-proxy-go/pkg-descr>`__ 
+* src: sysvsem: heap out-of-bounds access in semop(2) `[2] <https://www.freebsd.org/security/advisories/FreeBSD-SA-26:64.sysvsem.asc>`__ 
+* src: ktls: remote DoS via receive-side kernel TLS `[3] <https://www.freebsd.org/security/advisories/FreeBSD-SA-26:67.ktls.asc>`__ 
+* src: udp: IPv6 UDP sendto(2) bypasses jail loopback restriction `[4] <https://www.freebsd.org/security/advisories/FreeBSD-SA-26:69.udp.asc>`__ 
+* src: vfs: multiple jail filesystem root escapes `[5] <https://www.freebsd.org/security/advisories/FreeBSD-SA-26:66.jail.asc>`__ 
+* src: openssl: out-of-bounds read in OpenSSL DTLS retransmission `[6] <https://www.freebsd.org/security/advisories/FreeBSD-SA-26:68.openssl.asc>`__ 
+* src: kqueue: memory safety bugs in kqueue copy-on-fork implementation `[7] <https://www.freebsd.org/security/advisories/FreeBSD-SA-26:65.kqueue.asc>`__ 
+* src: syslogd: fix leaking child processes when logging to a pipe `[8] <https://www.freebsd.org/security/advisories/FreeBSD-EN-26:23.syslogd.asc>`__ 
+* src: iflib: do not hold the ifnet lock across registration
+* src: ixgbe: correct Wake-on-LAN configuration
+* src: dummynet: do not overflow the points[ED_MAX_SAMPLES_NO] array
+* src: pf: mark non-port packets to require IP checksumming
+* src: pf: set the correct type for rule timeouts
+* src: loopback: improve checksum offloading
+* src: vlan: use the exclusive lock everywhere
+* src: routing: initialize V_rt_numfibs earlier during boot
+* src: raw ip: clear sin_port on bind(2)
+* src: nd6: fix regeneration of temp addresses in detached state
+* src: hyperv: fix single page invalidation path
+* src: route/fib_algo: fix nexthop index collision across families
+* src: ice: do not leave device non-functional if Tx scheduler config fails
+* src: netipsec: fix V_spd_size updates
+* src: bnxt: assorted updates from stable/15
+* src: ixl: assorted updates from stable/15
+* src: linxkpi: assorted updates from stable/15
+* src: net80211: assorted updates from stable/15
+* src: pci: assorted updates from stable/15
+* ports: ca_root_nss / nss 3.130 `[9] <https://firefox-source-docs.mozilla.org/security/nss/releases/nss_3_130.html>`__ 
+* ports: expat	2.8.5 `[10] <https://github.com/libexpat/libexpat/blob/R_2_8_5/expat/Changes>`__ 
+* ports: pcre2 10.49 `[11] <https://github.com/PCRE2Project/pcre2/releases/tag/pcre2-10.49>`__ 
+* ports: phalcon 5.22.1 `[12] <https://github.com/phalcon/cphalcon/releases/tag/v5.22/1>`__ 
+* ports: php 8.5.11 `[13] <https://www.php.net/ChangeLog-8.php#8.5.11>`__ 
+* ports: py-duckdb 1.5.6 `[14] <https://github.com/duckdb/duckdb/releases/tag/v1.5.6>`__ 
+
+
+
+--------------------------------------------------------------------------
+26.7.5 (September 30, 2026)
+--------------------------------------------------------------------------
+
+
+This update fixes a few security related things and updates to OpenSSL 3.5.9.
+We are also updating the package manager to version 2.8.4 to sync up with
+the current version being used in FreeBSD.
+
+The default password hash changes from bcrypt to argon2id.  If you wish to
+benefit from this change your hashed passwords need to be changed.  Note that
+this step is optional.  All bcrypt-hashed passwords will continue to work.
+
+The firewall outbound NAT page moves to the legacy plugin.  Note that you can
+still migrate your rules without the plugin installed via the migration
+assistant and the outbound rules will continue to work even when the legacy
+plugin is not installed.
+
+Since work on the interface settings API is progressing nicely, there is also
+work being done on the backend which is already featured in this release.
+It is now possible to debug the interface ordering sequence at boot, which
+will also help bring in more optimizations in the near future.
+
+Here are the full patch notes:
+
+* system: clear password change session flag only after password was changed `[1] <https://github.com/opnsense/core/security/advisories/GHSA-x3q7-cc7h-gj3v>`__  (reported by Wu Wenhao)
+* system: change diag.disk to return total bytes as well as formatted bytes
+* system: fix HA service restart with "id" parameter set
+* system: add webgui PAM config to test with opnsense-login
+* system: switch password hashing from bcrypt to argon2id
+* interfaces: refactor interfaces_loopback_configure() and add ::1/128 sync
+* interfaces: fix PHP warnings in interfaces.php and do not write unset options
+* interfaces: fix linter complaints in WLAN model, 11a typo and wpa_pairwise labels
+* interfaces: dhclient handles keywords case-insensitive so properly match all "media" invokes (reported by Alice-Sabrina-Ivy)
+* interfaces: refactor interfaces_ppps_hardware() and avoid emitting serial device nodes
+* interfaces: allow to push $all_plugins in interface_configure()
+* interfaces: retire problematic validations in interface settings pertaining to legacy ISC-DHCP plugin
+* interfaces: stricter archive command in backend for packet capture download
+* interfaces: split out interfaces_dependencies() and make it digestible via pluginctl -Q
+* firewall: outbound NAT moves to legacy plugin
+* firewall: remove handling loopback addresses as "private"
+* firewall: fix expiry cron job default when alias TTL is smaller than 1 hour
+* firewall: use font-awesome elements for data tree controls to align with themes
+* firmware: opnsense-patch: added -R mode and updated -N mode
+* firmware: opnsense-prefetch: get remote size and print mismatches
+* firmware: opnsense-prefetch: curl use is now optional
+* firmware: add simple prompt to console changelog viewer
+* kea: add ping check settings for subnet configuration (contributed by laozhoubuluo)
+* monit: change "logfile" to "log" to fix syntax on newer daemon
+* acl: fix patterns for gateway groups (contributed by Andrew Ferk)
+* acl: merge the Dhcrelay log file pattern into the main ACL
+* bootgrid: exclude header cells from status color rendering
+* mvc: guard direct config saves against user-config-readonly (contributed by Andrew Ferk)
+* ui: remove defunct content-box-main usage
+* ui: make settings-changed trigger overridable
+* ui: fix blank bottom UI space (contributed by Konstantinos Spartalis)
+* plugins: os-ddclient 1.32 `[2] <https://github.com/opnsense/plugins/blob/stable/26.7/dns/ddclient/pkg-descr>`__ 
+* plugins: os-firewall-legacy 1.1 `[3] <https://github.com/opnsense/plugins/blob/stable/26.7/net/firewall-legacy/pkg-descr>`__ 
+* plugins: os-net-snmp 1.7 `[4] <https://github.com/opnsense/plugins/blob/stable/26.7/net-mgmt/net-snmp/pkg-descr>`__ 
+* plugins: os-puppet-agent 2.0 `[5] <https://github.com/opnsense/plugins/blob/stable/26.7/sysutils/puppet-agent/pkg-descr>`__ 
+* plugins: os-sftp-backup 1.2 verify backups after put
+* plugins: os-theme-cicada 1.42 (contributed by Greelan)
+* plugins: os-theme-tukan 1.32 (contributed by Team Rebellion)
+* plugins: os-theme-vicuna 1.52 (contributed by Team Rebellion)
+* ports: openssl 3.5.9 `[6] <https://github.com/openssl/openssl/blob/openssl-3.0/CHANGES.md>`__ 
+* ports: phalcon 5.22.0 `[7] <https://github.com/phalcon/cphalcon/releases/tag/v5.22.0>`__ 
+* ports: pkg 2.8.4
+
+
+
+--------------------------------------------------------------------------
 26.7.4 (September 15, 2026)
 --------------------------------------------------------------------------
 
